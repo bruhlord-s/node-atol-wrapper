@@ -14,7 +14,7 @@ NAN_MODULE_INIT(Fptr10::Init) {
   ctor->SetClassName(Nan::New("Fptr10").ToLocalChecked());
 
   // link our getters and setter to the object property
-  Nan::SetAccessor(ctor->InstanceTemplate(), Nan::New("x").ToLocalChecked(), Fptr10::HandleGetters, Fptr10::HandleSetters);
+  ctor->InstanceTemplate()->SetNativeDataProperty(Nan::New("x").ToLocalChecked(), HandleGetters, HandleSetters);
 
   Nan::SetPrototypeMethod(ctor, "create", Create);
   Nan::SetPrototypeMethod(ctor, "isOpened", IsOpened);
@@ -46,8 +46,14 @@ NAN_METHOD(Fptr10::New) {
   info.GetReturnValue().Set(info.Holder());
 }
 
-NAN_GETTER(Fptr10::HandleGetters) {
-  Fptr10* self = Nan::ObjectWrap::Unwrap<Fptr10>(info.This());
+void Fptr10::HandleGetters(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& info) {
+  #if NODE_MODULE_VERSION >= 127
+    v8::Local<v8::Object> holder = info.HolderV2();
+  #else
+    v8::Local<v8::Object> holder = info.Holder();
+  #endif
+
+  Fptr10* self = Nan::ObjectWrap::Unwrap<Fptr10>(holder);
 
   std::string propertyName = std::string(*Nan::Utf8String(property));
   if (propertyName == "x") {
@@ -57,11 +63,20 @@ NAN_GETTER(Fptr10::HandleGetters) {
   }
 }
 
-NAN_SETTER(Fptr10::HandleSetters) {
-  Fptr10* self = Nan::ObjectWrap::Unwrap<Fptr10>(info.This());
+void Fptr10::HandleSetters(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info) {
+  #if NODE_MODULE_VERSION >= 127
+    v8::Local<v8::Object> holder = info.HolderV2();
+  #else
+    v8::Local<v8::Object> holder = info.Holder();
+  #endif
+
+  Fptr10* self = Nan::ObjectWrap::Unwrap<Fptr10>(holder);
+  
   if(!value->IsNumber()) {
-    return Nan::ThrowError(Nan::New("expected value to be a number").ToLocalChecked());
+    Nan::ThrowError(Nan::New("expected value to be a number").ToLocalChecked());
+    return;
   }
+  
   std::string propertyName = std::string(*Nan::Utf8String(property));
   if (propertyName == "x") {
     self->x = value->NumberValue(Nan::GetCurrentContext()).ToChecked();

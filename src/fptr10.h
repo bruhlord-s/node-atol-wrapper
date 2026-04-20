@@ -37,8 +37,8 @@ public:
   static NAN_METHOD(FnReport);
   static NAN_METHOD(FindLastDocument);
 
-  static NAN_GETTER(HandleGetters);
-  static NAN_SETTER(HandleSetters);
+  static void HandleGetters(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+  static void HandleSetters(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info);
 
   static Nan::Persistent<v8::FunctionTemplate> constructor;
   static void workerFinished(Fptr10* self);
